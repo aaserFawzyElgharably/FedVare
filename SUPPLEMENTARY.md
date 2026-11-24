@@ -153,23 +153,52 @@ Values are taken from the released notebooks. "Adam" and "AdamW" use the PyTorch
 the global model after every round.
 
 ## 7. Baseline details
-
+ 
 - **FedAvg-Adam / FedAvg-Sophia.** Local training with the stated optimizer; the server takes the plain average
   of the returned client models (client sizes are balanced, so this equals size-proportional FedAvg weighting).
 - **FedAdamW** (Liu et al., AAAI 2026). Each client runs AdamW whose first moment is reset every round and
   whose second moment is initialized from the server-aggregated second moment. After every AdamW step, the
   client applies the global correction `x <- x - lr * gamma * Delta_G`, where
   `Delta_G = -(x^{r+1} - x^r) / (S K lr)` is the previous global update normalized by the number of
-  participating clients `S` and local steps `K`; `gamma = 0.59` on AG News and `0.6` on Sentiment140.
+  participating clients `S` and local steps `K`; `gamma = 0.6` on non-IID and `0.5` on IID.
   The server averages the client models and their AdamW second moments.
 - **FedLBW** (Kundroo et al., 2026). Each client model is weighted by `1 / L_c` on a fixed class-balanced proxy
   set of 1,000 samples drawn from the same `D_eval` pool FedVARE selects from (fixed per seed); only the client
   models are averaged (no global-model term). The local optimizer and schedule are the same as for the
   corresponding FedAvg baseline.
-- **Relation of FedVARE to FedLBW.** With `w̄_t` the inverse-loss average of the client models alone (the FedLBW
-  update), the FedVARE update is `w_{t+1} = w_t + (1 - q_{t,g}) (w̄_t - w_t)`: an exponential moving average
-  whose coefficient is recomputed every round from the reference losses. When all losses are similar,
-  `q_{t,g} ≈ 1/(M+1)` for `M` participating clients, so the damping is mild.
+- **Relation of FedVARE to FedLBW.** The FedVARE update (Eq. (1) in the paper) can be rewritten as a damped
+  FedLBW update. Step by step:
+```
+1. Scores:       s_{t,i} = 1 / (L_{t,i} + eps)   (each client i in S_t)
+                 s_{t,g} = 1 / (L_{t,g} + eps)   (current global model)
+ 
+2. Weights:      Z_t = s_{t,g} + sum_{j in S_t} s_{t,j}
+                 q_{t,g} = s_{t,g} / Z_t ,  q_{t,i} = s_{t,i} / Z_t
+                 => q_{t,g} + sum_{i in S_t} q_{t,i} = 1
+ 
+3. Update:       w_{t+1} = q_{t,g} w_t + sum_{i in S_t} q_{t,i} w_{t,i}                      (Eq. 1)
+ 
+4. Client mass:  sum_{i in S_t} q_{t,i} = (Z_t - s_{t,g}) / Z_t = 1 - q_{t,g}
+ 
+5. Factor:       q_{t,i} = [ sum_j s_{t,j} / Z_t ] * [ s_{t,i} / sum_j s_{t,j} ]
+                         = (1 - q_{t,g}) * s_{t,i} / sum_j s_{t,j}
+ 
+6. FedLBW avg.:  w̄_t = sum_{i in S_t} ( s_{t,i} / sum_j s_{t,j} ) w_{t,i}
+                 (inverse-loss average of the client models alone = the FedLBW update)
+ 
+7. Substitute 5 and 6 into 3:
+                 sum_{i in S_t} q_{t,i} w_{t,i} = (1 - q_{t,g}) w̄_t
+                 w_{t+1} = q_{t,g} w_t + (1 - q_{t,g}) w̄_t
+ 
+8. Rearrange:    w_{t+1} = w_t + (1 - q_{t,g}) (w̄_t - w_t)
+```
+ 
+  FedVARE therefore moves the global model a fraction `1 - q_{t,g}` of the way from `w_t` towards the FedLBW
+  update `w̄_t`: an exponential moving average whose coefficient `q_{t,g}` is recomputed every round from the
+  reference losses. If the global model has a high loss (small `s_{t,g}`), `q_{t,g}` is small and the step
+  is close to the full FedLBW update; if the global model already has a lower loss than the clients,
+  `q_{t,g}` is larger and the step is damped. When all losses are similar, `q_{t,g} ≈ 1/(M+1)` for `M`
+  participating clients, so the damping is mild.
 
 ## 8. Evaluation protocol
 
