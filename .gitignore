@@ -1,0 +1,10 @@
+__pycache__/
+.ipynb_checkpoints/
+main_model/
+client_state/
+round_cache/
+probe_cache/
+*.safetensors
+*.bin
+*.pt
+.env
