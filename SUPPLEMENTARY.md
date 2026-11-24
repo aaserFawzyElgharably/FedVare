@@ -132,7 +132,7 @@ Values are taken from the released notebooks. "Adam" and "AdamW" use the PyTorch
 |-----------------|-----------------|-----------:|----------:|--------------------------------------------------|
 | FedAvg-Adam     | Adam            | 6.0e-4     | 8e-7           |                                                  |
 | FedAvg-Sophia   | SophiaG         | 3.5e-4     | 2e-7           | betas (0.96, 0.98999), rho = 0.01                |
-| FedAdamW        | AdamW           | 4.5e-3     | 1e-8           | correction weight gamma = 0.59 (Sec. 7)          |
+| FedAdamW        | AdamW           | 4.5e-3     | 1e-8           | correction weight gamma = 0.6 (Sec. 7)          |
 | FedLBW          | SophiaG         | 2.8e-4     | 2e-7           | betas (0.96, 0.98999), rho = 0.01; proxy 1,000 (250 / class) |
 | FedVARE-Adam    | Adam            | 3.4e-4     | 9e-7           | reference set 100–200 samples                    |
 | FedVARE-Sophia  | SophiaG         | 3.5e-4     | 1e-7           | betas (0.965, 0.99), rho = 0.04; reference set 100–200 samples |
