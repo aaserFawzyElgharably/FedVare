@@ -106,7 +106,7 @@ induced by local fine-tuning, which is what the inverse-loss weights need.
 |--------------------------------|---------------------------------------|-----------------------------------|
 | Model                          | T5-small (seq2seq, label as text)     | ELECTRA-small discriminator + classification head |
 | Fine-tuning                    | LoRA on q, k, v, o; r = 16, alpha = 32, dropout 0.05, no bias | full fine-tuning |
-| Max. sequence length           | 256 input / 8 target tokens           | 96 tokens                         |
+| Max. sequence length           | 256 input / 8 target tokens           | 128 tokens                         |
 | Local batch size               | 64                                    | 512                               |
 | Clients / per round            | 30 / 30 (all)                         | 100 / 10                          |
 | Rounds                         | 50                                    | 100                               |
@@ -128,25 +128,25 @@ Values are taken from the released notebooks. "Adam" and "AdamW" use the PyTorch
 
 ### AG News (T5-small + LoRA)
 
-| Method          | Local optimizer | Initial LR | `eta_min` | Weight decay | Other                                            |
-|-----------------|-----------------|-----------:|----------:|-------------:|--------------------------------------------------|
-| FedAvg-Adam     | Adam            | 6.0e-4     | 8e-7      | 0            |                                                  |
-| FedAvg-Sophia   | SophiaG         | 3.5e-4     | 2e-7      | 0.1          | betas (0.96, 0.98999), rho = 0.01                |
-| FedAdamW        | AdamW           | 4.5e-3     | 1e-8      | 1e-12        | correction weight gamma = 0.59 (Sec. 7)          |
-| FedLBW          | SophiaG         | 2.8e-4     | 2e-7      | 0.1          | betas (0.96, 0.98999), rho = 0.01; proxy 1,000 (250 / class) |
-| FedVARE-Adam    | Adam            | 3.4e-4     | 9e-7      | 0            | reference set 100–200 samples                    |
-| FedVARE-Sophia  | SophiaG         | 3.5e-4     | 1e-7      | 0.1          | betas (0.965, 0.99), rho = 0.04; reference set 100–200 samples |
+| Method          | Local optimizer | Initial LR | `eta_min` | Other                                            |
+|-----------------|-----------------|-----------:|----------:|--------------------------------------------------|
+| FedAvg-Adam     | Adam            | 6.0e-4     | 8e-7           |                                                  |
+| FedAvg-Sophia   | SophiaG         | 3.5e-4     | 2e-7           | betas (0.96, 0.98999), rho = 0.01                |
+| FedAdamW        | AdamW           | 4.5e-3     | 1e-8           | correction weight gamma = 0.59 (Sec. 7)          |
+| FedLBW          | SophiaG         | 2.8e-4     | 2e-7           | betas (0.96, 0.98999), rho = 0.01; proxy 1,000 (250 / class) |
+| FedVARE-Adam    | Adam            | 3.4e-4     | 9e-7           | reference set 100–200 samples                    |
+| FedVARE-Sophia  | SophiaG         | 3.5e-4     | 1e-7           | betas (0.965, 0.99), rho = 0.04; reference set 100–200 samples |
 
 ### Sentiment140 (ELECTRA-small)
 
-| Method          | Local optimizer | Initial LR | `eta_min` | Weight decay | Other                                            |
-|-----------------|-----------------|-----------:|----------:|-------------:|--------------------------------------------------|
-| FedAvg-Adam     | Adam            | 1.3e-4     | 5e-8      | 3e-7         |                                                  |
-| FedAvg-Sophia   | SophiaG         | 4.0e-5     | 1e-8      | 1e-7         | betas (0.965, 0.99), rho = 0.04                  |
-| FedAdamW        | AdamW           | 2.3e-4     | 1e-8      | 5e-6         | correction weight gamma = 0.6 (Sec. 7)           |
-| FedLBW          | SophiaG         | 9.0e-5     | 5e-8      | 5e-7         | betas (0.965, 0.99), rho = 0.04; proxy 1,000 (500 / class) |
-| FedVARE-Adam    | Adam            | 3.7e-4     | 5e-7      | 0            | reference set 50–100 samples                     |
-| FedVARE-Sophia  | SophiaG         | 9.0e-5     | 5e-8      | 5e-7         | betas (0.965, 0.99), rho = 0.04; reference set 50–100 samples |
+| Method          | Local optimizer | Initial LR | `eta_min`  | Other                                            |
+|-----------------|-----------------|-----------:|----------:|--------------------------------------------------|
+| FedAvg-Adam     | Adam            | 1.3e-4     | 5e-7         |                                                  |
+| FedAvg-Sophia   | SophiaG         | 4.0e-5     | 1e-8        | betas (0.965, 0.99), rho = 0.04                  |
+| FedAdamW        | AdamW           | 2.3e-4     | 1e-8           | correction weight gamma = 0.6 (Sec. 7)           |
+| FedLBW          | SophiaG         | 9.0e-5     | 5e-8           | betas (0.965, 0.99), rho = 0.04; proxy 1,000 (500 / class) |
+| FedVARE-Adam    | Adam            | 3.7e-4     | 5e-7       | reference set 50–100 samples                     |
+| FedVARE-Sophia  | SophiaG         | 9.0e-5     | 5e-8         | betas (0.965, 0.99), rho = 0.04; reference set 50–100 samples |
 
 **Selection ablation (Sec. 3.2):** FedVARE-Sophia settings with initial LR 1.1e-4, all reference sets of size 100.
 **Held-out clients (Sec. 3.3):** clients 90–99 of the 100 never train; their local data are used only to evaluate
